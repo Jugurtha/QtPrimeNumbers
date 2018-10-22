@@ -10,10 +10,10 @@
 
 
 
-enum{SEQ,SEQMEM,OMP,OMPMEM, QTCONCURRENT, NB_VERSIONS};
-const char* VERSION_STR[] = {"SEQ","SEQMEM","OMP","OMPMEM","QTCONCURRENT"};
+enum{SEQ,SEQMEM,OMP,OMPMEM, QTCONCURRENT, QTCONCURRENTMEM, NB_VERSIONS};
+const char* VERSION_STR[] = {"SEQ","SEQMEM","OMP","OMPMEM","QTCONCURRENT","QTCONCURRENTMEM"};
 
-#define VERSION QTCONCURRENT
+const int VERSION = QTCONCURRENTMEM;
 
 
 
@@ -41,7 +41,9 @@ int main(int argc, char *argv[]) {
 
     PrimalityTest *pTest;
     if(QString::fromLatin1(VERSION_STR[VERSION]).endsWith("MEM"))
-        pTest = new OptimisedPrimalityTest(nullptr,primes,cpt);
+    {
+        pTest = new OptimisedPrimalityTest(nullptr,primes,cpt);qDebug() << "Here !!!\n";
+    }
     else
         pTest = new SimplePrimalityTest(nullptr);
 
@@ -66,18 +68,35 @@ int main(int argc, char *argv[]) {
 
     delete pTest;
 
+
+    //Comparing results with the first 1000000 primes from http://www.naturalnumbers.org/primes.html using WinMerge
+    // (this is not portable)
+//*
+    FILE *pfile = NULL;
+    pfile = fopen("../Tests/testPrimes.txt","w");
+    if(pfile==NULL)
+        perror("Unable to open test output file.");
+    else{
+        for (uint32_t i = 0; i < nbrPrimes; ++i)
+            fprintf(pfile, "%d\n", primes[i]);
+        fclose(pfile);
+        system("C:\\\"Program Files (x86)\"\\WinMerge\\WinMergeU /wl /u /e C:\\Development\\C++\\TESTS\\PrimeNumbers\\Tests\\primes.txt ..\\Tests\\testPrimes.txt");
+    }
+//*/
+
+
     FILE *pfileStats = NULL;
     pfileStats = fopen("C:/Development/C++/Qt/PrimeNumbers/Tests/stats","r+");
     if(pfileStats==NULL)
         perror("Unable to open stats output file.");
     else {
         int version[NB_VERSIONS] = {0};
-        fscanf(pfileStats, "%d,%d,%d,%d,%d\n", &version[SEQ], &version[SEQMEM], &version[OMP], &version[OMPMEM], &version[QTCONCURRENT]);
+        fscanf(pfileStats, "%d,%d,%d,%d,%d,%d\n", &version[SEQ], &version[SEQMEM], &version[OMP], &version[OMPMEM], &version[QTCONCURRENT], &version[QTCONCURRENTMEM]);
         version[VERSION]++;
         fseek(pfileStats,0,SEEK_END);
         fprintf(pfileStats, "%s,%d,%d,%d,%lf\n", VERSION_STR[VERSION], version[VERSION], NBR_THREADS, nbrPrimes, (double) wallClock/CLOCKS_PER_SEC);
         fseek(pfileStats,0,SEEK_SET);
-        fprintf(pfileStats, "%d,%d,%d,%d,%d\n", version[SEQ], version[SEQMEM], version[OMP], version[OMPMEM], version[QTCONCURRENT]);
+        fprintf(pfileStats, "%d,%d,%d,%d,%d,%d\n", version[SEQ], version[SEQMEM], version[OMP], version[OMPMEM], version[QTCONCURRENT], version[QTCONCURRENTMEM]);
         fclose(pfileStats);
     }
 

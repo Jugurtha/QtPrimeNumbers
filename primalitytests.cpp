@@ -16,19 +16,6 @@ bool SimplePrimalityTest::isPrime(uint32_t number) {
 
     bool result = true;
 
-    // 2 -> sqrtNum
-
-    //qDebug() << "sqrt(" << num << ") = " << sqrtNum << "\n";
-
-
-
-
-   // qDebug() << testNums;
-   // getchar();
-
-//    QThreadPool pool;
-//    pool.setMaxThreadCount(NBR_THREADS);
-
     QFutureSynchronizer<bool> sync;
     sync.setCancelOnWait(false);
     
@@ -36,7 +23,7 @@ bool SimplePrimalityTest::isPrime(uint32_t number) {
         connect(fWatchers[i],QFutureWatcher<bool>::finished,this,cancelAllFutures);
     }
 
-    uint32_t nbrTests = sqrtNum - 2 + 1;
+    uint32_t nbrTests = sqrtNum - 2 + 1;// 2 -> sqrtNum
 
     for (int i = 0; i < fWatchers.size(); ++i) {
         fWatchers[i]->setFuture(TaskExecutor::run(new PriimalityTester(number,2 + i*(nbrTests/NBR_THREADS), 2 + (i+1)*(nbrTests/NBR_THREADS))));
@@ -61,36 +48,15 @@ bool SimplePrimalityTest::isPrime(uint32_t number) {
         }
     }
 
-
-
-
-/*
-    QFutureWatcher<uint32_t> fWatcher;
-    QList<uint32_t> testNums;//(sqrtNum - 2 + 1);
-    for(uint32_t i = 2; i<= sqrtNum; i++)
-        testNums.append(i);
-    fWatcher.setFuture( QtConcurrent::filteredReduced(testNums,
-                                                      [=](const uint32_t &i){ return (num % i) == 0;},
-                                                      &PriimalityTester::reducer
-                                                      )
-                        );
-
-    fWatcher.waitForFinished();
-
-    result = fWatcher.result() == 0;
- */
- //   qDebug() << "result : " << result << "\n";
-
-
     return result;
 }
 
 
 
 
-bool OptimisedPrimalityTest::isPrime(uint32_t num)
+bool OptimisedPrimalityTest::isPrime(uint32_t number)
 {
-    uint32_t sqrtNum = squareRoot(num);
+    uint32_t sqrtNum = squareRoot(number);
     uint32_t limit = m_nbrPreviousPrimes;
 //   static uint32_t cacheHits = 0;
 //    static uint32_t cacheMiss = 0;
@@ -121,10 +87,35 @@ bool OptimisedPrimalityTest::isPrime(uint32_t num)
 
     bool result = true;
 
-    for (uint32_t i = 0; i <= limit; ++i) {
-        if (!(num % m_previousPrimes[i])) {
-            result = false;
-            break;
+    QFutureSynchronizer<bool> sync;
+    sync.setCancelOnWait(false);
+
+    for (int i = 0; i < fWatchers.size(); ++i) {
+        connect(fWatchers[i],QFutureWatcher<bool>::finished,this,cancelAllFutures);
+    }
+
+    uint32_t nbrTests = limit - 0 + 1;// 0 -> limit
+
+    for (int i = 0; i < fWatchers.size(); ++i) {
+        fWatchers[i]->setFuture(TaskExecutor::run(new OptimisedPriimalityTester(number, m_previousPrimes, i*(nbrTests/NBR_THREADS), (i+1)*(nbrTests/NBR_THREADS))));
+        sync.addFuture(fWatchers[i]->future());
+    }
+
+    sync.waitForFinished();
+
+    QList<QFuture<bool>> futures(sync.futures());
+
+    for (int i = 0; i < futures.size(); ++i) {
+        result &= futures[i].result();
+    }
+
+    if(result){
+        for (uint32_t i = nbrTests - (nbrTests % NBR_THREADS) ; i < nbrTests ; ++i) {
+            if(!(number % m_previousPrimes[i]))
+            {
+                result = false;
+                break;
+            }
         }
     }
 

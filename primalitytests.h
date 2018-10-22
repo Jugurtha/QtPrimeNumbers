@@ -64,7 +64,7 @@ class OptimisedPrimalityTest : public PrimalityTest
 {
 public:
     OptimisedPrimalityTest(QObject *parent, const uint32_t *previousPrimes, uint32_t &nbrPreviousPrimes) : PrimalityTest(parent), m_previousPrimes(previousPrimes), m_nbrPreviousPrimes(nbrPreviousPrimes) {}
-    bool isPrime(uint32_t num);
+    bool isPrime(uint32_t number);
     virtual ~OptimisedPrimalityTest() {}
 
 private :
