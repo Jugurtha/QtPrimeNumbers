@@ -41,9 +41,9 @@ int main(int argc, char *argv[]) {
 
     PrimalityTest *pTest;
     if(QString::fromLatin1(VERSION_STR[VERSION]).endsWith("MEM"))
-        pTest = new SimplePrimalityTest(nullptr);
-    else
         pTest = new OptimisedPrimalityTest(nullptr,primes,cpt);
+    else
+        pTest = new SimplePrimalityTest(nullptr);
 
     clock_t wallClock = clock();//Starting timer...
 

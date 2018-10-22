@@ -29,7 +29,9 @@ bool SimplePrimalityTest::isPrime(uint32_t number) {
 //    QThreadPool pool;
 //    pool.setMaxThreadCount(NBR_THREADS);
 
-
+    QFutureSynchronizer<bool> sync;
+    sync.setCancelOnWait(false);
+    
     for (int i = 0; i < fWatchers.size(); ++i) {
         connect(fWatchers[i],QFutureWatcher<bool>::finished,this,cancelAllFutures);
     }
@@ -38,7 +40,28 @@ bool SimplePrimalityTest::isPrime(uint32_t number) {
 
     for (int i = 0; i < fWatchers.size(); ++i) {
         fWatchers[i]->setFuture(TaskExecutor::run(new PriimalityTester(number,2 + i*(nbrTests/NBR_THREADS), 2 + (i+1)*(nbrTests/NBR_THREADS))));
+        sync.addFuture(fWatchers[i]->future());        
     }
+
+    sync.waitForFinished();
+    
+    QList<QFuture<bool>> futures(sync.futures());
+
+    for (int i = 0; i < futures.size(); ++i) {
+        result &= futures[i].result();
+    }
+    
+    if(result){
+        for (uint32_t i = 2 + nbrTests - (nbrTests % NBR_THREADS) ; i < 2 + nbrTests ; ++i) {
+            if(!(number % i))
+            {
+                result = false;
+                break;
+            }
+        }
+    }
+
+
 
 
 /*
@@ -57,6 +80,7 @@ bool SimplePrimalityTest::isPrime(uint32_t number) {
     result = fWatcher.result() == 0;
  */
  //   qDebug() << "result : " << result << "\n";
+
 
     return result;
 }
