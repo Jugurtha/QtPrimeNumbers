@@ -17,7 +17,7 @@
 #define CACHE_SIZE (4000/4)
 #define NBR_SMALL_PRIMES 50
 
-#define NBR_THREADS 2
+#define NBR_THREADS 3
 
 
 uint32_t squareRoot(uint32_t a_nInput);

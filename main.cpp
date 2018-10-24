@@ -18,6 +18,9 @@ const int VERSION = QTCONCURRENTMEM;
 
 
 int main(int argc, char *argv[]) {
+/*    qDebug() << "Number of Threads : " << QThread::idealThreadCount();
+    getchar();
+*/
     qDebug() << "Version : " << VERSION_STR[VERSION] << "\n";
     
     uint32_t nbrPrimes = strtoul(argv[1],NULL,10);//Getting number of primes to find from stdin at lunch
@@ -41,9 +44,7 @@ int main(int argc, char *argv[]) {
 
     PrimalityTest *pTest;
     if(QString::fromLatin1(VERSION_STR[VERSION]).endsWith("MEM"))
-    {
-        pTest = new OptimisedPrimalityTest(nullptr,primes,cpt);qDebug() << "Here !!!\n";
-    }
+        pTest = new OptimisedPrimalityTest(nullptr,primes,cpt);
     else
         pTest = new SimplePrimalityTest(nullptr);
 
@@ -71,7 +72,7 @@ int main(int argc, char *argv[]) {
 
     //Comparing results with the first 1000000 primes from http://www.naturalnumbers.org/primes.html using WinMerge
     // (this is not portable)
-//*
+/*
     FILE *pfile = NULL;
     pfile = fopen("../Tests/testPrimes.txt","w");
     if(pfile==NULL)
